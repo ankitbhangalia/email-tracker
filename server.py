@@ -85,8 +85,7 @@ def classify_lead(requirement):
         priority = 'Low'
         
     return category, priority
-
-class HTTPHandler(http.server.SimpleHTTPRequestHandler):
+    class HTTPHandler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         # Clean url query strings
         parsed = urllib.parse.urlparse(path)
@@ -331,5 +330,21 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
         self.send_json_response(status, {'error': message})
 
     def do_OPTIONS(self):
+        # Handle CORS preflight
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin',)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+if __name__ == '__main__':
+    init_db()
+    print(f"Starting server on http://localhost:{PORT}")
+    server = socketserver.TCPServer(("", PORT), HTTPHandler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+        print("Server stopped.")
