@@ -1,0 +1,2 @@
+# No external dependencies required. 
+# The server is built entirely using Python's standard library (sqlite3, http.server, json, etc.) to ensure 100% compatibility.

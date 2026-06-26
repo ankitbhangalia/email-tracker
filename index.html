@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Management & Email Tracking System</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                <span class="logo-text">TrackerApp</span>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="form-tab">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Capture Lead</span>
+                </button>
+                <button class="nav-btn" data-tab="dashboard-tab">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-btn" data-tab="inbox-tab">
+                    <i class="fa-solid fa-inbox"></i>
+                    <span>Simulated Inbox</span>
+                    <span class="badge" id="inbox-badge" style="display: none;">0</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="status-indicator online"></span>
+                <span>System Active</span>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h1 id="page-title">Lead Capture Form</h1>
+                    <p id="page-subtitle">Submit details to trigger automated tracking email</p>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <div class="profile-info">
+                        <span class="profile-name">Administrator</span>
+                        <span class="profile-role">Lead Manager</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Alerts Container (for real-time notifications) -->
+            <div id="notification-toast" class="toast">
+                <div class="toast-icon"><i class="fa-solid fa-bell"></i></div>
+                <div class="toast-body">
+                    <div class="toast-title">Notification</div>
+                    <div class="toast-message">Message details go here</div>
+                </div>
+            </div>
+
+            <!-- Content Tabs -->
+            <section class="tab-content">
+                <!-- TAB 1: LEAD CAPTURE FORM -->
+                <div class="tab-pane active" id="form-tab">
+                    <div class="form-card-container">
+                        <div class="glass-card form-card">
+                            <h2 class="card-title"><i class="fa-solid fa-address-card"></i> Lead Information</h2>
+                            <p class="card-desc">Enter lead details to automatically store in the database, run AI classification, and send a trackable email response.</p>
+                            
+                            <form id="lead-form">
+                                <div class="form-group-row">
+                                    <div class="form-group">
+                                        <label for="fullName">Full Name <span class="required">*</span></label>
+                                        <div class="input-wrapper">
+                                            <i class="fa-regular fa-user"></i>
+                                            <input type="text" id="fullName" name="name" placeholder="Rahul Sharma" required autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="emailAddress">Email Address <span class="required">*</span></label>
+                                        <div class="input-wrapper">
+                                            <i class="fa-regular fa-envelope"></i>
+                                            <input type="email" id="emailAddress" name="email" placeholder="rahul@gmail.com" required autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group-row">
+                                    <div class="form-group">
+                                        <label for="phoneNumber">Phone Number <span class="required">*</span></label>
+                                        <div class="input-wrapper">
+                                            <i class="fa-solid fa-phone"></i>
+                                            <input type="tel" id="phoneNumber" name="phone" placeholder="9876543210" required autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="companyName">Company Name <span class="optional">(Optional)</span></label>
+                                        <div class="input-wrapper">
+                                            <i class="fa-regular fa-building"></i>
+                                            <input type="text" id="companyName" name="company" placeholder="ABC Pvt Ltd" autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="requirement">Requirement / Message <span class="required">*</span></label>
+                                    <div class="textarea-wrapper">
+                                        <i class="fa-regular fa-comment-dots"></i>
+                                        <textarea id="requirement" name="requirement" rows="4" placeholder="Describe the business needs (e.g. 'I need a chatbot for my website urgently')" required autocomplete="off"></textarea>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="submit-btn">
+                                    <span>Submit & Send Email</span>
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: ANALYTICS DASHBOARD -->
+                <div class="tab-pane" id="dashboard-tab">
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card glass-card">
+                            <div class="stat-icon leads"><i class="fa-solid fa-users"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">Total Leads</span>
+                                <h3 class="stat-value" id="stat-total-leads">0</h3>
+                            </div>
+                            <div class="stat-glow leads-glow"></div>
+                        </div>
+
+                        <div class="stat-card glass-card">
+                            <div class="stat-icon sent"><i class="fa-regular fa-paper-plane"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">Emails Sent</span>
+                                <h3 class="stat-value" id="stat-emails-sent">0</h3>
+                            </div>
+                            <div class="stat-glow sent-glow"></div>
+                        </div>
+
+                        <div class="stat-card glass-card">
+                            <div class="stat-icon opened"><i class="fa-regular fa-envelope-open"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">Emails Opened</span>
+                                <h3 class="stat-value" id="stat-emails-opened">0</h3>
+                            </div>
+                            <div class="stat-progress">
+                                <span class="stat-sublabel">Open Rate</span>
+                                <span class="stat-percent" id="stat-open-rate">0%</span>
+                            </div>
+                            <div class="stat-glow opened-glow"></div>
+                        </div>
+
+                        <div class="stat-card glass-card">
+                            <div class="stat-icon clicks"><i class="fa-solid fa-arrow-pointer"></i></div>
+                            <div class="stat-details">
+                                <span class="stat-label">Links Clicked</span>
+                                <h3 class="stat-value" id="stat-links-clicked">0</h3>
+                            </div>
+                            <div class="stat-progress">
+                                <span class="stat-sublabel">Click Rate</span>
+                                <span class="stat-percent" id="stat-click-rate">0%</span>
+                            </div>
+                            <div class="stat-glow clicks-glow"></div>
+                        </div>
+                    </div>
+
+                    <!-- Leads Table Section -->
+                    <div class="glass-card table-card">
+                        <div class="table-header">
+                            <h2 class="card-title"><i class="fa-solid fa-list-check"></i> Real-time Lead Database</h2>
+                            <div class="table-actions">
+                                <button class="refresh-btn" id="refresh-btn">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="leads-table">
+                                <thead>
+                                    <tr>
+                                        <th>Lead Details</th>
+                                        <th>Company</th>
+                                        <th>AI Analysis</th>
+                                        <th>Sent</th>
+                                        <th>Opened</th>
+                                        <th>Clicked</th>
+                                        <th>Submission Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leads-table-body">
+                                    <tr>
+                                        <td colspan="7" class="empty-table">
+                                            <i class="fa-solid fa-folder-open"></i>
+                                            <p>No leads submitted yet. Use the "Capture Lead" tab to get started!</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: SIMULATED INBOX -->
+                <div class="tab-pane" id="inbox-tab">
+                    <div class="inbox-container">
+                        <!-- Email List -->
+                        <div class="glass-card inbox-list-card">
+                            <div class="inbox-header">
+                                <h3 class="inbox-title"><i class="fa-solid fa-envelope"></i> Simulated Inbox</h3>
+                                <span class="inbox-subtitle">Select an email to view & test tracking</span>
+                            </div>
+                            <div class="email-list" id="email-list-body">
+                                <div class="empty-inbox">
+                                    <i class="fa-regular fa-envelope"></i>
+                                    <p>Inbox is empty. Submit a lead to trigger an automated email response.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Viewer -->
+                        <div class="glass-card inbox-viewer-card" id="email-viewer">
+                            <div class="empty-viewer-state" id="empty-viewer-state">
+                                <i class="fa-regular fa-paper-plane"></i>
+                                <p>Select an email from the left list to read and test the real-time open and click tracking features.</p>
+                            </div>
+                            <div class="email-details-container" id="email-details-container" style="display: none;">
+                                <div class="email-header-info">
+                                    <div class="email-row">
+                                        <span class="email-field-label">From:</span>
+                                        <span class="email-field-value font-semibold text-primary">Lead Management & Email Tracking System &lt;no-reply@tracksystem.io&gt;</span>
+                                    </div>
+                                    <div class="email-row">
+                                        <span class="email-field-label">To:</span>
+                                        <span class="email-field-value" id="email-to-field">recipient@domain.com</span>
+                                    </div>
+                                    <div class="email-row">
+                                        <span class="email-field-label">Subject:</span>
+                                        <span class="email-field-value font-semibold" id="email-subject-field">Thank you for your interest!</span>
+                                    </div>
+                                    <div class="email-row">
+                                        <span class="email-field-label">Date:</span>
+                                        <span class="email-field-value" id="email-date-field">June 26, 2026, 3:15 PM</span>
+                                    </div>
+                                </div>
+                                <div class="email-body-wrapper">
+                                    <div class="email-explanation">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                        <span>Opening this email simulates the client rendering it, which requests the 1x1 tracking pixel. Clicking the link simulates click tracking.</span>
+                                    </div>
+                                    <div class="email-iframe-container">
+                                        <!-- Sandbox email in iframe to render pixel and link click safely -->
+                                        <iframe id="email-body-iframe" src="about:blank"></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
