@@ -10,7 +10,10 @@ import mimetypes
 
 PORT = 3000
 DB_FILE = 'leads.db'
-PUBLIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public')
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = os.path.join(SCRIPT_DIR, 'public')
+if not os.path.exists(PUBLIC_DIR) or not os.path.exists(os.path.join(PUBLIC_DIR, 'index.html')):
+    PUBLIC_DIR = SCRIPT_DIR
 
 # 1x1 transparent GIF tracking pixel
 TRACKING_PIXEL = b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'
@@ -37,11 +40,10 @@ def init_db():
         )
     ''')
     
-    # Check if table is empty
+    # Check if table is empty and seed initial demo data
     cursor.execute("SELECT COUNT(*) FROM leads")
     count = cursor.fetchone()[0]
     if count == 0:
-        # Seed mock data
         now = datetime.datetime.now()
         time1 = (now - datetime.timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
         time2 = (now - datetime.timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
@@ -86,10 +88,28 @@ def classify_lead(requirement):
 
 class HTTPHandler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        # Serve from public directory
-        path = super().translate_path(path)
-        rel_path = os.path.relpath(path, os.getcwd())
-        return os.path.join(PUBLIC_DIR, rel_path)
+        # Clean url query strings
+        parsed = urllib.parse.urlparse(path)
+        clean_path = urllib.parse.unquote(parsed.path)
+        
+        # Prevent directory traversal attacks
+        parts = clean_path.split('/')
+        safe_parts = []
+        for part in parts:
+            if not part or part == '.':
+                continue
+            if part == '..':
+                if safe_parts:
+                    safe_parts.pop()
+                continue
+            safe_parts.append(part)
+            
+        resolved_path = os.path.join(PUBLIC_DIR, *safe_parts)
+        
+        if os.path.isdir(resolved_path):
+            resolved_path = os.path.join(resolved_path, 'index.html')
+            
+        return resolved_path
 
     def do_GET(self):
         # Open tracking endpoint
@@ -114,13 +134,10 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
             self.get_stats()
             return
 
-        # Default static file routing
-        if self.path == '/' or self.path == '':
-            self.path = '/index.html'
-        
-        # Check if file exists, if not, redirect to index.html for SPA fallback
-        resolved_path = os.path.join(PUBLIC_DIR, self.path.lstrip('/'))
-        if not os.path.exists(resolved_path) or os.path.isdir(resolved_path):
+        # Serve static files
+        resolved_path = self.translate_path(self.path)
+        if not os.path.exists(resolved_path):
+            # SPA fallback: serve index.html if the file doesn't exist
             self.path = '/index.html'
 
         super().do_GET()
@@ -142,8 +159,6 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
         try:
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
-            
-            # Check if already opened
             cursor.execute("SELECT email_opened FROM leads WHERE id = ?", (lead_id,))
             row = cursor.fetchone()
             if row and row[0] == 0:
@@ -171,8 +186,6 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
         try:
             conn = sqlite3.connect(DB_FILE)
             cursor = conn.cursor()
-            
-            # Check if already clicked
             cursor.execute("SELECT link_clicked FROM leads WHERE id = ?", (lead_id,))
             row = cursor.fetchone()
             if row and row[0] == 0:
@@ -186,9 +199,9 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"Error tracking click: {e}")
 
-        # Redirect user back to the application homepage (success page/dashboard)
+        # Redirect user back to simulated inbox success route
         self.send_response(302)
-        self.send_header('Location', '/index.html?clicked=true')
+        self.send_header('Location', '/index.html?clicked=true#inbox')
         self.end_headers()
 
     def get_leads(self):
@@ -308,7 +321,6 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
     def send_json_response(self, status, data):
         self.send_response(status)
         self.send_header('Content-Type', 'application/json')
-        # Add CORS headers
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
@@ -319,21 +331,5 @@ class HTTPHandler(http.server.SimpleHTTPRequestHandler):
         self.send_json_response(status, {'error': message})
 
     def do_OPTIONS(self):
-        # Handle CORS preflight
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-
-if __name__ == '__main__':
-    init_db()
-    print(f"Starting server on http://localhost:{PORT}")
-    server = socketserver.TCPServer(("", PORT), HTTPHandler)
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server.server_close()
-        print("Server stopped.")
+        self.send_header('Access-Control-Allow-Origin',
